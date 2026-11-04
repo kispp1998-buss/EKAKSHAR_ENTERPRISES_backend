@@ -24,7 +24,31 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export function createApp() {
   const app = express();
   app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-  app.use(cors({ origin: env.clientOrigin, credentials: true }));
+
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://ekakshar-enterprises.vercel.app",
+    env.clientOrigin,
+  ].filter(Boolean);
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (
+          allowedOrigins.includes(origin) ||
+          origin.endsWith(".vercel.app") ||
+          env.clientOrigin === "*"
+        ) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
+      credentials: true,
+    })
+  );
+
   app.use(express.json({ limit: "2mb" }));
   app.use(morgan("dev"));
   app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
